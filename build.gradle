@@ -1,0 +1,56 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'application'
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+mainClassName = 'org.example.MainPipeline'
+
+ext {
+    beamSdkVersion = '2.20.0'
+    guavaVersion = '29.0-jre'
+    jodaTimeVersion = '2.10.6'
+    mssqlJdbcVersion = '8.2.1.jre8'
+    secretManagerVersion = '1.0.1'
+    slf4jVersion = '1.7.30'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.apache.beam:beam-sdks-java-core:${beamSdkVersion}"
+    compile "org.apache.beam:beam-sdks-java-io-jdbc:${beamSdkVersion}"
+    compile "org.apache.beam:beam-sdks-java-io-google-cloud-platform:${beamSdkVersion}"
+    runtime "org.apache.beam:beam-runners-direct-java:${beamSdkVersion}"
+    compile "org.apache.beam:beam-runners-google-cloud-dataflow-java:${beamSdkVersion}"
+
+    compile "joda-time:joda-time:${jodaTimeVersion}"
+    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+    compile "org.slf4j:slf4j-jdk14:${slf4jVersion}"
+    compile "com.google.guava:guava:${guavaVersion}"
+    compile "com.google.cloud:google-cloud-secretmanager:${secretManagerVersion}"
+
+    runtime "com.microsoft.sqlserver:mssql-jdbc:${mssqlJdbcVersion}"
+
+    testCompile 'junit:junit'
+}

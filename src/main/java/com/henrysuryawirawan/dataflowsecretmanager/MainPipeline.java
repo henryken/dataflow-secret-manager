@@ -2,7 +2,9 @@ package com.henrysuryawirawan.dataflowsecretmanager;
 
 import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
+
 import java.io.IOException;
+
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.BigEndianIntegerCoder;
 import org.apache.beam.sdk.coders.KvCoder;
@@ -22,6 +24,16 @@ public class MainPipeline {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MainPipeline.class);
 
+  private static String jdbcUrlTranslator(String jdbcUrlSecretName) {
+    try (SecretManagerServiceClient client = SecretManagerServiceClient.create()) {
+      AccessSecretVersionResponse response = client.accessSecretVersion(jdbcUrlSecretName);
+
+      return response.getPayload().getData().toStringUtf8();
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to read JDBC URL secret");
+    }
+  }
+
   public static void main(String[] args) {
     PipelineOptionsFactory.register(MainPipelineOptions.class);
 
@@ -30,27 +42,18 @@ public class MainPipeline {
             .withValidation()
             .as(MainPipelineOptions.class);
 
-    NestedValueProvider<String, String> jdbcUrlValueProvider = NestedValueProvider
-        .of(options.getJdbcUrlSecretName(), secretName -> {
-          try (SecretManagerServiceClient client = SecretManagerServiceClient.create()) {
-            AccessSecretVersionResponse response = client.accessSecretVersion(secretName);
-
-            String jdbcUrl = response.getPayload().getData().toStringUtf8();
-
-            return jdbcUrl;
-          } catch (IOException e) {
-            throw new RuntimeException("Unable to read JDBC URL secret");
-          }
-        });
+    NestedValueProvider<String, String> jdbcUrlValueProvider =
+        NestedValueProvider.of(options.getJdbcUrlSecretName(), MainPipeline::jdbcUrlTranslator);
 
     Pipeline pipeline = Pipeline.create(options);
 
     pipeline
-        .apply("SQLServer Read - JDBC",
+        .apply("SQL Server Read - JDBC",
             JdbcIO.<KV<Integer, String>>read()
-                .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                    StaticValueProvider.of("com.microsoft.sqlserver.jdbc.SQLServerDriver"),
-                    jdbcUrlValueProvider)
+                .withDataSourceConfiguration(
+                    JdbcIO.DataSourceConfiguration.create(
+                        StaticValueProvider.of("com.microsoft.sqlserver.jdbc.SQLServerDriver"),
+                        jdbcUrlValueProvider)
                 )
                 .withQuery("select * from Sales.Customers_Archive")
                 .withCoder(KvCoder.of(BigEndianIntegerCoder.of(), StringUtf8Coder.of()))
@@ -72,5 +75,4 @@ public class MainPipeline {
 
     pipeline.run();
   }
-
 }

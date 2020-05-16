@@ -1,4 +1,4 @@
-package org.example;
+package com.henrysuryawirawan.dataflowsecretmanager;
 
 import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
@@ -24,13 +24,14 @@ public class MainPipeline {
 
   public static void main(String[] args) {
     PipelineOptionsFactory.register(MainPipelineOptions.class);
+
     MainPipelineOptions options =
         PipelineOptionsFactory.fromArgs(args)
             .withValidation()
             .as(MainPipelineOptions.class);
 
     NestedValueProvider<String, String> jdbcUrlValueProvider = NestedValueProvider
-        .of(options.getSqlServerJdbcUrlSecretName(), secretName -> {
+        .of(options.getJdbcUrlSecretName(), secretName -> {
           try (SecretManagerServiceClient client = SecretManagerServiceClient.create()) {
             AccessSecretVersionResponse response = client.accessSecretVersion(secretName);
 

@@ -1,4 +1,4 @@
-package org.example;
+package com.henrysuryawirawan.dataflowsecretmanager;
 
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.options.Default;
@@ -8,10 +8,10 @@ import org.apache.beam.sdk.options.ValueProvider;
 
 public interface MainPipelineOptions extends DataflowPipelineOptions {
 
-  @Description("SqlServer Jdbc URL Secret Name")
+  @Description("JDBC URL Secret Name")
   @Default.String("jdbc-url-secret")
   @Validation.Required
-  ValueProvider<String> getSqlServerJdbcUrlSecretName();
-  void setSqlServerJdbcUrlSecretName(ValueProvider<String> sqlServerJdbcUrlSecretName);
+  ValueProvider<String> getJdbcUrlSecretName();
+  void setJdbcUrlSecretName(ValueProvider<String> jdbcUrlSecretName);
 
 }

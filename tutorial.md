@@ -30,7 +30,7 @@ Click the **Start** button to move to the next step.
     export PROJECT_NUMBER=$(gcloud projects describe $PROJECT --format 'value(projectNumber)')
     export REGION=asia-northeast1
     export DF_REGION=asia-northeast1
-    export GCS_BUCKET=gs://bucket
+    export GCS_BUCKET=gs://$PROJECT
     export DB_PASSWORD=<your-password>
     ```
 

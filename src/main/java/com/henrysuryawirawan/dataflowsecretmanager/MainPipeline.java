@@ -48,7 +48,7 @@ public class MainPipeline {
     Pipeline pipeline = Pipeline.create(options);
 
     pipeline
-        .apply("SQL Server Read - JDBC",
+        .apply("SQL Server - Read Sales.Customers_Archive",
             JdbcIO.<KV<Integer, String>>read()
                 .withDataSourceConfiguration(
                     JdbcIO.DataSourceConfiguration.create(
@@ -60,7 +60,7 @@ public class MainPipeline {
                 .withRowMapper((RowMapper<KV<Integer, String>>) resultSet ->
                     KV.of(resultSet.getInt(1), resultSet.getString(2))))
 
-        .apply(ParDo.of(new DoFn<KV<Integer, String>, String>() {
+        .apply("Log Customer", ParDo.of(new DoFn<KV<Integer, String>, String>() {
 
           @ProcessElement
           public void processElement(@Element KV<Integer, String> element,

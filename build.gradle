@@ -3,10 +3,6 @@ buildscript {
         mavenCentral()
         jcenter()
     }
-
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
-    }
 }
 
 plugins {
@@ -14,15 +10,15 @@ plugins {
     id 'application'
 }
 
-apply plugin: 'com.github.johnrengelman.shadow'
-
-group 'org.example'
+group 'com.henrysuryawirawan.dataflowsecretmanager'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-mainClassName = 'org.example.MainPipeline'
+application {
+    mainClass = 'com.henrysuryawirawan.dataflowsecretmanager.MainPipeline'
+}
 
 ext {
     beamSdkVersion = '2.20.0'

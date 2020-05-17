@@ -30,7 +30,10 @@ Click the **Start** button to move to the next step.
     export PROJECT_NUMBER=$(gcloud projects describe $PROJECT --format 'value(projectNumber)')
     export REGION=asia-northeast1
     export DF_REGION=asia-northeast1
+    export SECRET_REGION=asia-southeast1
     export GCS_BUCKET=gs://$PROJECT
+    ```
+    ```bash
     export DB_PASSWORD=<your-password>
     ```
 
@@ -49,7 +52,7 @@ Click the **Start** button to move to the next step.
         --network=default
     ```
 
-1.  Create Cloud SQL instance.
+1.  Create Cloud SQL instance. It will take a while to create.
     ```bash
     gcloud beta sql instances create test \
         --no-assign-ip --region=$REGION --network=default \
@@ -68,13 +71,13 @@ Click the **Start** button to move to the next step.
     gsutil cp WideWorldImporters-Standard.bak $GCS_BUCKET
     ```
     ```bash
-    export CLOUD_SQL_SA=$(gcloud sql instances describe test2 --format='value(serviceAccountEmailAddress)')
+    export CLOUD_SQL_SA=$(gcloud sql instances describe test --format='value(serviceAccountEmailAddress)')
     gsutil iam ch serviceAccount:$CLOUD_SQL_SA:roles/storage.objectViewer $GCS_BUCKET
     gcloud sql import bak test $GCS_BUCKET/WideWorldImporters-Standard.bak \
         --database=wide-world-importers
     ```
 
-1.  Create Dataflow worker service account and grant "Dataflow Worker" IAM role.
+1.  Create Dataflow worker service account and grant necessary IAM roles.
     ```bash
     gcloud iam service-accounts create dataflow-worker-sa \
         --display-name="Dataflow worker service account"
@@ -83,18 +86,27 @@ Click the **Start** button to move to the next step.
     gcloud projects add-iam-policy-binding $PROJECT \
           --member="serviceAccount:$DATAFLOW_WORKER_SA" \
           --role='roles/dataflow.worker'
-    gsutil iam ch serviceAccount:dataflow-worker-sa:roles/dataflow.worker
+    gcloud projects add-iam-policy-binding $PROJECT \
+          --member="serviceAccount:$DATAFLOW_WORKER_SA" \
+          --role='roles/storage.objectAdmin'
     ```
 
 1.  Create JDBC URL secret and grant permission to Dataflow Worker SA.
     ```bash
-    export CLOUD_SQL_PRIVATE_IP=$(gcloud sql instances describe test2 --format='value(ipAddresses[].ipAddress)')
+    export CLOUD_SQL_PRIVATE_IP=$(gcloud sql instances describe test --format='value(ipAddresses[].ipAddress)')
     echo "jdbc:sqlserver://$CLOUD_SQL_PRIVATE_IP;databaseName=wide-world-importers;user=sqlserver;password=$DB_PASSWORD" \
-        | gcloud secrets create jdbc-url --locations=$REGION \
+        | gcloud secrets create jdbc-url --locations=$SECRET_REGION \
             --replication-policy=user-managed --data-file=-
     gcloud secrets add-iam-policy-binding jdbc-url \
         --member="serviceAccount:$DATAFLOW_WORKER_SA" \
         --role='roles/secretmanager.secretAccessor'
+    ```
+
+1.  Enable Private IP Google Access.
+    ```bash
+    gcloud compute networks subnets update default \
+        --region=$DF_REGION \
+        --enable-private-ip-google-access
     ```
 
 1.  Build the application and deploy as Dataflow template.
@@ -104,12 +116,8 @@ Click the **Start** button to move to the next step.
     ./gradlew run --args="--project=$PROJECT --region=$DF_REGION --stagingLocation=$GCS_BUCKET/df-temp --tempLocation=$GCS_BUCKET/df-temp --templateLocation=$GCS_BUCKET/templates/main-pipeline --runner=DataflowRunner"
     ```
 
-1.  Run Dataflow template.
+1.  Run the Dataflow template.
     ```bash
-    gcloud compute networks subnets update default \
-        --region=$DF_REGION \
-        --enable-private-ip-google-access
-    
     gcloud dataflow jobs run secret-manager-sample \
         --region=$DF_REGION --worker-region=$DF_REGION --disable-public-ips \
         --service-account-email=$DATAFLOW_WORKER_SA \

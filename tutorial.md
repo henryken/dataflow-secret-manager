@@ -126,8 +126,12 @@ Click the **Start** button to move to the next step.
         --gcs-location=$GCS_BUCKET/templates/main-pipeline \
         --parameters="jdbcUrlSecretName=projects/$PROJECT_NUMBER/secrets/jdbc-url/versions/latest"
     ```
-
-1.  Observe that the pipeline can read the data from the database successfully.
+1.  Open the Dataflow page by accessing the link in your Cloud Shell.
+    ```bash
+    echo "https://console.cloud.google.com/dataflow?project=$PROJECT"
+    ```
+    
+1.  Navigate to the running Dataflow job and observe that the pipeline can read the data from the database successfully.
 
 ## Congratulations
 

@@ -138,4 +138,5 @@ Click the **Start** button to move to the next step.
 <walkthrough-conclusion-trophy></walkthrough-conclusion-trophy>
 
 You have successfully run a Dataflow pipeline that reads a secret from Secret Manager!
+
 Please let me know how it goes and share with me your experience!

@@ -109,6 +109,8 @@ Click the **Start** button to move to the next step.
         --enable-private-ip-google-access
     ```
 
+## How to Run
+
 1.  Build the application and deploy as Dataflow template.
     ```bash
     export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
@@ -124,3 +126,12 @@ Click the **Start** button to move to the next step.
         --gcs-location=$GCS_BUCKET/templates/main-pipeline \
         --parameters="jdbcUrlSecretName=projects/$PROJECT_NUMBER/secrets/jdbc-url/versions/latest"
     ```
+
+1.  Observe that the pipeline can read the data from the database successfully.
+
+## Congratulations
+
+<walkthrough-conclusion-trophy></walkthrough-conclusion-trophy>
+
+You have successfully run a Dataflow pipeline that reads a secret from Secret Manager!
+Please let me know how it goes and share with me your experience!
